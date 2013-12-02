@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 
 begin
-  require 'MeCab'
+	require 'MeCab'
 rescue LoadError
-  abort "MeCab load error"
+	abort "MeCab load error"
 end
 
-include Markovich
-
-module Markovich::WordCollection
+module Markovich
 
 	TAGGER = MeCab::Tagger.new("-Owakati")
 
 	module Common
 		attr_reader :source
 		
-		def build_sentence(query, interrogative = false)
+		def build_sentence(query)
 			seed = search(query)
 			return nil if seed.nil?
 			second = seed["second"]
@@ -70,7 +68,8 @@ module Markovich::WordCollection
 		end
 		
 		def save_text(text)
-			WordCollection::parse(text).each_cons(3) do |a|
+			result = []
+			Markovich::parse(text).each_cons(3) do |a|
 				save_doc({"first" => a[0], "second" => a[1], "third" => a[2]})
 			end
 			self
@@ -82,13 +81,6 @@ module Markovich::WordCollection
 	end
 	
 	class << self
-		def make_al_from_array(arr)
-			al = ArrayList.new
-			arr.each do |t|
-				al.save_text(t)
-			end
-		end
-		
 		def parse(text)
 			TAGGER.parse("BOS" + text + "EOS").force_encoding("UTF-8").split(" ")
 		end
